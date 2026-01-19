@@ -96,7 +96,6 @@ scm_version()
 		} | grep -qvE '^(.. )?scripts/package'; then
 			# printf '%s' -dirty
 		fi
-
 		# All done with git
 		return
 	fi
