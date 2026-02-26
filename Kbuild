@@ -33,10 +33,10 @@ targets += $(timeconst-file)
 
 quiet_cmd_gentimeconst = GEN     $@
 define cmd_gentimeconst
-	(echo $(CONFIG_HZ) | bc -q $< ) > $@
+	$(PYTHON3) $(srctree)/scripts/gen_timeconst.py $(CONFIG_HZ) > $@
 endef
 define filechk_gentimeconst
-	(echo $(CONFIG_HZ) | bc -q $< )
+	$(PYTHON3) $(srctree)/scripts/gen_timeconst.py $(CONFIG_HZ)
 endef
 
 $(obj)/$(timeconst-file): kernel/time/timeconst.bc FORCE
