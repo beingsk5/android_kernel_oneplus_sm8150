@@ -397,35 +397,20 @@ OBJCOPY		= llvm-objcopy
 OBJDUMP		= llvm-objdump
 READELF		= llvm-readelf
 STRIP		= llvm-strip
-ifneq ($(shell command -v llvm-ar 2>/dev/null),)
-AR		= llvm-ar
-else
-AR		= $(if $(shell command -v $(CROSS_COMPILE)ar 2>/dev/null),$(CROSS_COMPILE)ar,ar)
-endif
 ifneq ($(shell command -v llvm-nm 2>/dev/null),)
 NM		= llvm-nm
 else
-NM		= $(if $(shell command -v $(CROSS_COMPILE)nm 2>/dev/null),$(CROSS_COMPILE)nm,nm)
-endif
-ifneq ($(shell command -v llvm-objcopy 2>/dev/null),)
-OBJCOPY		= llvm-objcopy
-else
-OBJCOPY		= $(if $(shell command -v $(CROSS_COMPILE)objcopy 2>/dev/null),$(CROSS_COMPILE)objcopy,objcopy)
-endif
-ifneq ($(shell command -v llvm-objdump 2>/dev/null),)
-OBJDUMP		= llvm-objdump
-else
-OBJDUMP		= $(if $(shell command -v $(CROSS_COMPILE)objdump 2>/dev/null),$(CROSS_COMPILE)objdump,objdump)
+NM		= nm
 endif
 ifneq ($(shell command -v llvm-readelf 2>/dev/null),)
 READELF		= llvm-readelf
 else
-READELF		= $(if $(shell command -v $(CROSS_COMPILE)readelf 2>/dev/null),$(CROSS_COMPILE)readelf,readelf)
+READELF		= readelf
 endif
 ifneq ($(shell command -v llvm-strip 2>/dev/null),)
 STRIP		= llvm-strip
 else
-STRIP		= $(if $(shell command -v $(CROSS_COMPILE)strip 2>/dev/null),$(CROSS_COMPILE)strip,strip)
+STRIP		= strip
 endif
 else
 CC		= $(CROSS_COMPILE)gcc
