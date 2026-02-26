@@ -397,6 +397,21 @@ OBJCOPY		= llvm-objcopy
 OBJDUMP		= llvm-objdump
 READELF		= llvm-readelf
 STRIP		= llvm-strip
+ifneq ($(shell command -v llvm-nm 2>/dev/null),)
+NM		= llvm-nm
+else
+NM		= nm
+endif
+ifneq ($(shell command -v llvm-readelf 2>/dev/null),)
+READELF		= llvm-readelf
+else
+READELF		= readelf
+endif
+ifneq ($(shell command -v llvm-strip 2>/dev/null),)
+STRIP		= llvm-strip
+else
+STRIP		= strip
+endif
 else
 CC		= $(CROSS_COMPILE)gcc
 LD		= $(CROSS_COMPILE)ld
