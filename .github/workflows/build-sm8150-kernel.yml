@@ -1,0 +1,70 @@
+name: Build SM8150 Kernel (clang-r574158)
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        defconfig: [sm8150_defconfig, sm8150-perf_defconfig]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            bc bison flex cpio \
+            libssl-dev libelf-dev \
+            pahole rsync python3 \
+            curl xz-utils \
+            gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu \
+            device-tree-compiler
+
+      - name: Fetch clang-r574158
+        run: |
+          mkdir -p "$HOME/toolchains/clang-r574158"
+          curl -L --retry 5 --retry-delay 5 \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/ebcc6c3bef363bc539ea39f45b6abae1dce6ff1a/clang-r574158.tar.gz" \
+            | tar -xz -C "$HOME/toolchains/clang-r574158"
+          "$HOME/toolchains/clang-r574158/bin/clang" --version | head -n 1
+
+      - name: Build Image + DTBs (${{ matrix.defconfig }})
+        env:
+          ARCH: arm64
+          LLVM: "1"
+          LLVM_IAS: "1"
+          CLANG_TRIPLE: aarch64-linux-gnu-
+          CROSS_COMPILE: aarch64-linux-gnu-
+        run: |
+          export PATH="$HOME/toolchains/clang-r574158/bin:$PATH"
+          OUT="out/${{ matrix.defconfig }}"
+          make O="$OUT" "vendor/${{ matrix.defconfig }}"
+          make O="$OUT" olddefconfig
+          make -j"$(nproc)" O="$OUT" Image dtbs
+
+      - name: Verify artifacts (${{ matrix.defconfig }})
+        run: |
+          OUT="out/${{ matrix.defconfig }}"
+          test -f "$OUT/arch/arm64/boot/Image"
+          test "$(find "$OUT/arch/arm64/boot/dts" -type f -name '*.dtb' | wc -l)" -gt 0
+          ls -lh "$OUT/arch/arm64/boot/Image"
+
+      - name: Upload artifacts (${{ matrix.defconfig }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm8150-${{ matrix.defconfig }}-image-dtbs
+          path: |
+            out/${{ matrix.defconfig }}/arch/arm64/boot/Image
+            out/${{ matrix.defconfig }}/arch/arm64/boot/dts/**/*.dtb
+          if-no-files-found: error
